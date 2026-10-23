@@ -3,7 +3,13 @@ const manifest = require('../manifest.json');
 
 const API_BASE = 'https://reidosembeds.lat/api';
 
-// Mapeamento exato de IDs do catálogo para os nomes aceitos pela API
+const HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+  'Accept': 'application/json, text/plain, */*',
+  'Referer': 'https://reidosembeds.lat/',
+  'Origin': 'https://reidosembeds.lat'
+};
+
 const CATEGORY_MAP = {
   'cat_canais-abertos': 'Canais Abertos',
   'cat_globo': 'Globo',
@@ -67,44 +73,36 @@ function processChannels(channels) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
 
-  // Limpa a URL de query strings da Vercel
-  const parsedUrl = new URL(req.url, 'http://localhost');
-  const pathname = parsedUrl.pathname;
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // Pega a URL bruta da requisição na Vercel
+  const reqUrl = req.headers['x-now-route-matches'] || req.headers['x-matched-path'] || req.url;
+  const rawPath = reqUrl.split('?')[0];
 
   // 1. MANIFESTO
-  if (pathname === '/' || pathname === '/manifest.json') {
+  if (rawPath === '/' || rawPath.endsWith('/manifest.json')) {
     return res.json(manifest);
   }
 
-  // 2. CATÁLOGO
-  if (pathname.startsWith('/catalog/tv/')) {
-    const cleanPath = pathname.replace('/catalog/tv/', '').replace('.json', '');
-    const segments = cleanPath.split('/');
-    const catalogId = segments[0];
+  // 2. CATÁLOGOS
+  if (rawPath.includes('/catalog/tv/')) {
+    const afterCatalog = rawPath.substring(rawPath.indexOf('/catalog/tv/') + '/catalog/tv/'.length);
+    const cleanSegment = afterCatalog.replace('.json', '');
+    const parts = cleanSegment.split('/');
+    const catalogId = parts[0];
 
-    // Extrai parâmetros adicionais (ex: skip=0 ou genre=Futebol)
-    const extraStr = segments.slice(1).join('&');
-    const extraQuery = new URLSearchParams(extraStr);
-
-    // --- ABA DE ESPORTES (AGENDA) ---
+    // --- ABA DE ESPORTES ---
     if (catalogId === 'cat_esportes') {
       try {
-        const genre = extraQuery.get('genre');
-        const endpoint = (genre && genre !== 'Todos')
-          ? `${API_BASE}/eventos?category=${encodeURIComponent(genre)}`
-          : `${API_BASE}/eventos`;
-
-        const resp = await axios.get(endpoint, {
-          headers: { 'User-Agent': 'Mozilla/5.0' },
-          timeout: 7000
-        });
-
+        const resp = await axios.get(`${API_BASE}/eventos`, { headers: HEADERS, timeout: 6000 });
         let events = resp.data?.data || [];
 
-        // Ordenação: 1º 'live', 2º horário de início
         events.sort((a, b) => {
           if (a.status === 'live' && b.status !== 'live') return -1;
           if (b.status === 'live' && a.status !== 'live') return 1;
@@ -119,6 +117,7 @@ module.exports = async (req, res) => {
             type: 'tv',
             name: isLive ? `🔴 AO VIVO: ${ev.title}` : `⏳ [${time}] ${ev.title}`,
             poster: ev.poster || ev.time1 || manifest.logo,
+            posterShape: 'landscape',
             background: ev.poster,
             description: `${ev.competition || ev.category} • Início: ${ev.start_time}\n${ev.description || ''}`,
             genres: [ev.category || 'Esportes']
@@ -127,25 +126,18 @@ module.exports = async (req, res) => {
 
         return res.json({ metas });
       } catch (err) {
-        console.error('Erro em esportes:', err.message);
         return res.json({ metas: [] });
       }
     }
 
-    // --- DEMAIS PASTAS DE CANAIS ---
+    // --- DEMAIS CATEGORIAS DE CANAIS ---
     try {
-      let apiRoute = `${API_BASE}/channels`;
-
-      // Aplica o nome de categoria correto esperado pela API
+      let endpoint = `${API_BASE}/channels`;
       if (CATEGORY_MAP[catalogId]) {
-        apiRoute = `${API_BASE}/channels?category=${encodeURIComponent(CATEGORY_MAP[catalogId])}`;
+        endpoint = `${API_BASE}/channels?category=${encodeURIComponent(CATEGORY_MAP[catalogId])}`;
       }
 
-      const resp = await axios.get(apiRoute, {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        timeout: 7000
-      });
-
+      const resp = await axios.get(endpoint, { headers: HEADERS, timeout: 6000 });
       let channels = resp.data?.data || [];
       let grouped = processChannels(channels);
 
@@ -153,7 +145,6 @@ module.exports = async (req, res) => {
         grouped = grouped.filter(g => g.is_active === true);
       }
 
-      // Ao vivo no topo
       grouped.sort((a, b) => (b.is_active ? 1 : 0) - (a.is_active ? 1 : 0));
 
       const metas = grouped.map(g => ({
@@ -161,6 +152,7 @@ module.exports = async (req, res) => {
         type: 'tv',
         name: g.is_active ? `🔴 ${g.rootName}` : g.rootName,
         poster: g.logo_url || manifest.logo,
+        posterShape: 'landscape',
         background: g.preview_url || g.logo_url,
         description: g.subChannels.length > 1
           ? `${g.subChannels.length} Sinais disponíveis • ${g.now_playing_title || g.category || ''}`
@@ -170,19 +162,19 @@ module.exports = async (req, res) => {
 
       return res.json({ metas });
     } catch (err) {
-      console.error('Erro em canais:', err.message);
       return res.json({ metas: [] });
     }
   }
 
   // 3. METADADOS
-  if (pathname.startsWith('/meta/tv/')) {
-    const id = pathname.replace('/meta/tv/', '').replace('.json', '');
+  if (rawPath.includes('/meta/tv/')) {
+    const afterMeta = rawPath.substring(rawPath.indexOf('/meta/tv/') + '/meta/tv/'.length);
+    const id = afterMeta.replace('.json', '');
 
     if (id.startsWith('rde_ev_')) {
       const slug = id.replace('rde_ev_', '');
       try {
-        const resp = await axios.get(`${API_BASE}/eventos/${slug}`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        const resp = await axios.get(`${API_BASE}/eventos/${slug}`, { headers: HEADERS });
         const ev = resp.data?.data?.[0] || resp.data?.data;
         return res.json({
           meta: {
@@ -190,6 +182,7 @@ module.exports = async (req, res) => {
             type: 'tv',
             name: ev.title,
             poster: ev.poster || ev.time1,
+            posterShape: 'landscape',
             background: ev.poster,
             description: `🏆 ${ev.competition || ''}\n⏰ Início: ${ev.start_time}\n\n${ev.description || ''}`
           }
@@ -201,7 +194,7 @@ module.exports = async (req, res) => {
 
     if (id.startsWith('rde_grp_')) {
       try {
-        const resp = await axios.get(`${API_BASE}/channels`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        const resp = await axios.get(`${API_BASE}/channels`, { headers: HEADERS });
         const grouped = processChannels(resp.data?.data || []);
         const target = grouped.find(g => g.id === id);
 
@@ -213,6 +206,7 @@ module.exports = async (req, res) => {
               type: 'tv',
               name: target.rootName,
               poster: target.logo_url,
+              posterShape: 'landscape',
               background: target.preview_url || target.logo_url,
               description: `Sinais disponíveis:\n${signals}\n\nPrograma atual: ${target.now_playing_title || 'Transmissão Ao Vivo'}`
             }
@@ -225,14 +219,15 @@ module.exports = async (req, res) => {
   }
 
   // 4. STREAMS
-  if (pathname.startsWith('/stream/tv/')) {
-    const id = pathname.replace('/stream/tv/', '').replace('.json', '');
+  if (rawPath.includes('/stream/tv/')) {
+    const afterStream = rawPath.substring(rawPath.indexOf('/stream/tv/') + '/stream/tv/'.length);
+    const id = afterStream.replace('.json', '');
     const streams = [];
 
     if (id.startsWith('rde_ev_')) {
       const slug = id.replace('rde_ev_', '');
       try {
-        const resp = await axios.get(`${API_BASE}/eventos/${slug}`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        const resp = await axios.get(`${API_BASE}/eventos/${slug}`, { headers: HEADERS });
         const ev = resp.data?.data?.[0] || resp.data?.data;
 
         if (ev && Array.isArray(ev.embeds)) {
@@ -251,7 +246,7 @@ module.exports = async (req, res) => {
 
     if (id.startsWith('rde_grp_')) {
       try {
-        const resp = await axios.get(`${API_BASE}/channels`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        const resp = await axios.get(`${API_BASE}/channels`, { headers: HEADERS });
         const grouped = processChannels(resp.data?.data || []);
         const target = grouped.find(g => g.id === id);
 

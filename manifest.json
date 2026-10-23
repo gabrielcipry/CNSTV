@@ -1,45 +1,100 @@
 {
   "id": "community.nuvio.canaisreidos",
-  "version": "1.2.0",
+  "version": "1.0.0",
   "name": "Canais & Esportes Ao Vivo",
-  "description": "Canais unificados e agenda ao vivo com atualização contínua.",
+  "description": "Canais e agenda esportiva ao vivo.",
   "logo": "https://reidosembeds.lat/img/bg/bg-post-event.png",
-  "resources": ["catalog", "meta", "stream"],
-  "types": ["tv"],
+  "resources": [
+    "catalog",
+    "meta",
+    "stream"
+  ],
+  "types": [
+    "tv"
+  ],
+  "idPrefixes": [
+    "rde_"
+  ],
   "catalogs": [
-    { "type": "tv", "id": "cat_todos", "name": "Todos", "showInHome": true },
-    { "type": "tv", "id": "cat_aovivo", "name": "Ao Vivo Agora", "showInHome": true },
+    {
+      "type": "tv",
+      "id": "cat_todos",
+      "name": "Grade Completa"
+    },
+    {
+      "type": "tv",
+      "id": "cat_aovivo",
+      "name": "Transmissões Ao Vivo"
+    },
     {
       "type": "tv",
       "id": "cat_esportes",
-      "name": "Esportes (Agenda)",
-      "showInHome": true,
-      "extra": [
-        {
-          "name": "genre",
-          "options": ["Todos", "Futebol", "Basquete", "Beisebol", "Hóquei", "Vôlei", "Rugby", "MMA", "Golfe"],
-          "isRequired": false
-        }
-      ]
+      "name": "Esportes e Jogos"
     },
-    { "type": "tv", "id": "cat_canais-abertos", "name": "Canais Abertos", "showInHome": true },
-    { "type": "tv", "id": "cat_globo", "name": "Globo", "showInHome": true },
-    { "type": "tv", "id": "cat_noticias", "name": "Notícias" },
-    { "type": "tv", "id": "cat_filmes", "name": "Filmes" },
-    { "type": "tv", "id": "cat_series", "name": "Séries" },
-    { "type": "tv", "id": "cat_variedades", "name": "Variedades" },
-    { "type": "tv", "id": "cat_documentarios", "name": "Documentários" },
-    { "type": "tv", "id": "cat_desenhos", "name": "Desenhos" },
-    { "type": "tv", "id": "cat_infantil", "name": "Infantil" },
-    { "type": "tv", "id": "cat_animes", "name": "Animes" },
-    { "type": "tv", "id": "cat_24-horas", "name": "24 Horas" },
-    { "type": "tv", "id": "cat_realitys", "name": "Realitys" },
-    { "type": "tv", "id": "cat_a-fazenda", "name": "A Fazenda" },
-    { "type": "tv", "id": "cat_gospel", "name": "Gospel" },
-    { "type": "tv", "id": "cat_ingles", "name": "Inglês" },
-    { "type": "tv", "id": "cat_internacionais", "name": "Internacionais" },
-    { "type": "tv", "id": "cat_miamitv", "name": "MiamiTV" },
-    { "type": "tv", "id": "cat_adulto", "name": "Adulto" }
-  ],
-  "idPrefixes": ["rde_"]
+    {
+      "type": "tv",
+      "id": "cat_canais-abertos",
+      "name": "Canais Abertos"
+    },
+    {
+      "type": "tv",
+      "id": "cat_globo",
+      "name": "Rede Globo"
+    },
+    {
+      "type": "tv",
+      "id": "cat_noticias",
+      "name": "Notícias"
+    },
+    {
+      "type": "tv",
+      "id": "cat_filmes",
+      "name": "Filmes"
+    },
+    {
+      "type": "tv",
+      "id": "cat_series",
+      "name": "Séries"
+    },
+    {
+      "type": "tv",
+      "id": "cat_variedades",
+      "name": "Variedades"
+    },
+    {
+      "type": "tv",
+      "id": "cat_documentarios",
+      "name": "Documentários"
+    },
+    {
+      "type": "tv",
+      "id": "cat_infantil",
+      "name": "Infantil"
+    },
+    {
+      "type": "tv",
+      "id": "cat_desenhos",
+      "name": "Desenhos"
+    },
+    {
+      "type": "tv",
+      "id": "cat_animes",
+      "name": "Animes"
+    },
+    {
+      "type": "tv",
+      "id": "cat_realitys",
+      "name": "Realitys"
+    },
+    {
+      "type": "tv",
+      "id": "cat_a-fazenda",
+      "name": "A Fazenda"
+    },
+    {
+      "type": "tv",
+      "id": "cat_24-horas",
+      "name": "24 Horas"
+    }
+  ]
 }

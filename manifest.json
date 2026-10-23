@@ -1,100 +1,69 @@
 {
-  "id": "community.nuvio.canaisreidos",
+  "id": "community.nuvio.cnstv",
   "version": "1.0.0",
-  "name": "Canais & Esportes Ao Vivo",
-  "description": "Canais e agenda esportiva ao vivo.",
+  "name": "CNS TV Ao Vivo",
+  "description": "Canais de TV ao vivo e eventos esportivos integrados em alta qualidade.",
   "logo": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+  "background": "https://reidosembeds.lat/img/bg/bg-post-event.png",
   "resources": [
+    "stream",
     "catalog",
-    "meta",
-    "stream"
+    "meta"
   ],
   "types": [
-    "tv"
+    "tv",
+    "movie",
+    "series"
   ],
   "idPrefixes": [
-    "rde_"
+    "tv",
+    "rde"
   ],
   "catalogs": [
     {
       "type": "tv",
-      "id": "cat_todos",
-      "name": "Grade Completa"
+      "id": "tv_eventos",
+      "name": "Eventos Ao Vivo",
+      "posterShape": "square",
+      "extra": [
+        { "name": "search", "isRequired": false },
+        {
+          "name": "genre",
+          "isRequired": false,
+          "options": ["Todos", "Futebol", "Basquete", "Vôlei", "MMA", "Outros Esportes"]
+        },
+        { "name": "skip", "isRequired": false }
+      ]
     },
     {
       "type": "tv",
-      "id": "cat_aovivo",
-      "name": "Transmissões Ao Vivo"
-    },
-    {
-      "type": "tv",
-      "id": "cat_esportes",
-      "name": "Esportes e Jogos"
-    },
-    {
-      "type": "tv",
-      "id": "cat_canais-abertos",
-      "name": "Canais Abertos"
-    },
-    {
-      "type": "tv",
-      "id": "cat_globo",
-      "name": "Rede Globo"
-    },
-    {
-      "type": "tv",
-      "id": "cat_noticias",
-      "name": "Notícias"
-    },
-    {
-      "type": "tv",
-      "id": "cat_filmes",
-      "name": "Filmes"
-    },
-    {
-      "type": "tv",
-      "id": "cat_series",
-      "name": "Séries"
-    },
-    {
-      "type": "tv",
-      "id": "cat_variedades",
-      "name": "Variedades"
-    },
-    {
-      "type": "tv",
-      "id": "cat_documentarios",
-      "name": "Documentários"
-    },
-    {
-      "type": "tv",
-      "id": "cat_infantil",
-      "name": "Infantil"
-    },
-    {
-      "type": "tv",
-      "id": "cat_desenhos",
-      "name": "Desenhos"
-    },
-    {
-      "type": "tv",
-      "id": "cat_animes",
-      "name": "Animes"
-    },
-    {
-      "type": "tv",
-      "id": "cat_realitys",
-      "name": "Realitys"
-    },
-    {
-      "type": "tv",
-      "id": "cat_a-fazenda",
-      "name": "A Fazenda"
-    },
-    {
-      "type": "tv",
-      "id": "cat_24-horas",
-      "name": "24 Horas"
+      "id": "tv_canais",
+      "name": "Canais de TV",
+      "posterShape": "square",
+      "extra": [
+        { "name": "search", "isRequired": false },
+        {
+          "name": "genre",
+          "isRequired": false,
+          "options": [
+            "Todos",
+            "Ao Vivo Agora",
+            "Canais Abertos",
+            "Globo",
+            "Notícias",
+            "Filmes",
+            "Séries",
+            "Variedades",
+            "Documentários",
+            "Infantil",
+            "Desenhos",
+            "Animes",
+            "24 Horas",
+            "Realitys"
+          ]
+        },
+        { "name": "skip", "isRequired": false }
+      ]
     }
   ]
 }

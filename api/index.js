@@ -3,6 +3,28 @@ const manifest = require('../manifest.json');
 
 const API_BASE = 'https://reidosembeds.lat/api';
 
+// Mapeamento exato de IDs do catálogo para os nomes aceitos pela API
+const CATEGORY_MAP = {
+  'cat_canais-abertos': 'Canais Abertos',
+  'cat_globo': 'Globo',
+  'cat_noticias': 'Notícias',
+  'cat_filmes': 'Filmes',
+  'cat_series': 'Séries',
+  'cat_variedades': 'Variedades',
+  'cat_documentarios': 'Documentários',
+  'cat_desenhos': 'Desenhos',
+  'cat_infantil': 'Infantil',
+  'cat_animes': 'Animes',
+  'cat_24-horas': '24 Horas',
+  'cat_realitys': 'Realitys',
+  'cat_a-fazenda': 'A Fazenda',
+  'cat_gospel': 'Gospel',
+  'cat_ingles': 'Inglês',
+  'cat_internacionais': 'Internacionais',
+  'cat_miamitv': 'MiamiTV',
+  'cat_adulto': 'Adulto'
+};
+
 function cleanChannelName(rawName) {
   if (!rawName) return '';
   return rawName
@@ -20,12 +42,12 @@ function processChannels(channels) {
 
   channels.forEach(ch => {
     const rootName = cleanChannelName(ch.name);
-    const groupKey = slugify(rootName);
+    const groupKey = slugify(rootName || 'canal');
 
     if (!groups.has(groupKey)) {
       groups.set(groupKey, {
         id: `rde_grp_${groupKey}`,
-        rootName,
+        rootName: rootName || ch.name,
         category: ch.category,
         logo_url: ch.logo_url,
         preview_url: ch.preview_url,
@@ -46,24 +68,28 @@ function processChannels(channels) {
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  // Cache: resposta fresca por 30 segundos; revalidação em background até 60 segundos
   res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
 
-  const { url } = req;
+  // Limpa a URL de query strings da Vercel
+  const parsedUrl = new URL(req.url, 'http://localhost');
+  const pathname = parsedUrl.pathname;
 
-  // ROTA: MANIFESTO
-  if (url === '/' || url === '/manifest.json') {
+  // 1. MANIFESTO
+  if (pathname === '/' || pathname === '/manifest.json') {
     return res.json(manifest);
   }
 
-  // ROTA: CATÁLOGO
-  if (url.startsWith('/catalog/tv/')) {
-    const parts = url.replace('/catalog/tv/', '').replace('.json', '').split('/');
-    const catalogId = parts[0];
-    const extraQuery = parts[1] ? new URLSearchParams(parts[1]) : new URLSearchParams();
+  // 2. CATÁLOGO
+  if (pathname.startsWith('/catalog/tv/')) {
+    const cleanPath = pathname.replace('/catalog/tv/', '').replace('.json', '');
+    const segments = cleanPath.split('/');
+    const catalogId = segments[0];
 
-    // 1. Catálogo de Esportes (Agenda ao vivo ordenada)
+    // Extrai parâmetros adicionais (ex: skip=0 ou genre=Futebol)
+    const extraStr = segments.slice(1).join('&');
+    const extraQuery = new URLSearchParams(extraStr);
+
+    // --- ABA DE ESPORTES (AGENDA) ---
     if (catalogId === 'cat_esportes') {
       try {
         const genre = extraQuery.get('genre');
@@ -71,10 +97,14 @@ module.exports = async (req, res) => {
           ? `${API_BASE}/eventos?category=${encodeURIComponent(genre)}`
           : `${API_BASE}/eventos`;
 
-        const resp = await axios.get(endpoint, { timeout: 4500 });
+        const resp = await axios.get(endpoint, {
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+          timeout: 7000
+        });
+
         let events = resp.data?.data || [];
 
-        // Ordenação: 1º 'live', 2º horário de início crescente
+        // Ordenação: 1º 'live', 2º horário de início
         events.sort((a, b) => {
           if (a.status === 'live' && b.status !== 'live') return -1;
           if (b.status === 'live' && a.status !== 'live') return 1;
@@ -97,19 +127,25 @@ module.exports = async (req, res) => {
 
         return res.json({ metas });
       } catch (err) {
+        console.error('Erro em esportes:', err.message);
         return res.json({ metas: [] });
       }
     }
 
-    // 2. Catálogos de Canais (com agrupamento Apple TV 1, 2, 3...)
+    // --- DEMAIS PASTAS DE CANAIS ---
     try {
       let apiRoute = `${API_BASE}/channels`;
-      if (catalogId.startsWith('cat_') && catalogId !== 'cat_todos' && catalogId !== 'cat_aovivo') {
-        const catSlug = catalogId.replace('cat_', '');
-        apiRoute = `${API_BASE}/channels?category=${encodeURIComponent(catSlug)}`;
+
+      // Aplica o nome de categoria correto esperado pela API
+      if (CATEGORY_MAP[catalogId]) {
+        apiRoute = `${API_BASE}/channels?category=${encodeURIComponent(CATEGORY_MAP[catalogId])}`;
       }
 
-      const resp = await axios.get(apiRoute, { timeout: 4500 });
+      const resp = await axios.get(apiRoute, {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        timeout: 7000
+      });
+
       let channels = resp.data?.data || [];
       let grouped = processChannels(channels);
 
@@ -117,7 +153,7 @@ module.exports = async (req, res) => {
         grouped = grouped.filter(g => g.is_active === true);
       }
 
-      // Ao Vivo sempre no topo
+      // Ao vivo no topo
       grouped.sort((a, b) => (b.is_active ? 1 : 0) - (a.is_active ? 1 : 0));
 
       const metas = grouped.map(g => ({
@@ -127,25 +163,26 @@ module.exports = async (req, res) => {
         poster: g.logo_url || manifest.logo,
         background: g.preview_url || g.logo_url,
         description: g.subChannels.length > 1
-          ? `${g.subChannels.length} Sinais disponíveis • ${g.now_playing_title || g.category}`
-          : (g.now_playing_title || g.category),
+          ? `${g.subChannels.length} Sinais disponíveis • ${g.now_playing_title || g.category || ''}`
+          : (g.now_playing_title || g.category || ''),
         genres: [g.category || 'Variedades']
       }));
 
       return res.json({ metas });
     } catch (err) {
+      console.error('Erro em canais:', err.message);
       return res.json({ metas: [] });
     }
   }
 
-  // ROTA: METADADOS
-  if (url.startsWith('/meta/tv/')) {
-    const id = url.replace('/meta/tv/', '').replace('.json', '');
+  // 3. METADADOS
+  if (pathname.startsWith('/meta/tv/')) {
+    const id = pathname.replace('/meta/tv/', '').replace('.json', '');
 
     if (id.startsWith('rde_ev_')) {
       const slug = id.replace('rde_ev_', '');
       try {
-        const resp = await axios.get(`${API_BASE}/eventos/${slug}`);
+        const resp = await axios.get(`${API_BASE}/eventos/${slug}`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         const ev = resp.data?.data?.[0] || resp.data?.data;
         return res.json({
           meta: {
@@ -154,7 +191,7 @@ module.exports = async (req, res) => {
             name: ev.title,
             poster: ev.poster || ev.time1,
             background: ev.poster,
-            description: `🏆 ${ev.competition || ''}\n⏰ Horário: ${ev.start_time}\n\n${ev.description || ''}`
+            description: `🏆 ${ev.competition || ''}\n⏰ Início: ${ev.start_time}\n\n${ev.description || ''}`
           }
         });
       } catch (err) {
@@ -163,9 +200,8 @@ module.exports = async (req, res) => {
     }
 
     if (id.startsWith('rde_grp_')) {
-      const key = id.replace('rde_grp_', '');
       try {
-        const resp = await axios.get(`${API_BASE}/channels`);
+        const resp = await axios.get(`${API_BASE}/channels`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         const grouped = processChannels(resp.data?.data || []);
         const target = grouped.find(g => g.id === id);
 
@@ -178,7 +214,7 @@ module.exports = async (req, res) => {
               name: target.rootName,
               poster: target.logo_url,
               background: target.preview_url || target.logo_url,
-              description: `Sinais disponíveis:\n${signals}\n\nNo ar: ${target.now_playing_title || 'Ao Vivo'}`
+              description: `Sinais disponíveis:\n${signals}\n\nPrograma atual: ${target.now_playing_title || 'Transmissão Ao Vivo'}`
             }
           });
         }
@@ -188,16 +224,15 @@ module.exports = async (req, res) => {
     }
   }
 
-  // ROTA: STREAMS (ENTREGA DOS SINAIS)
-  if (url.startsWith('/stream/tv/')) {
-    const id = url.replace('/stream/tv/', '').replace('.json', '');
+  // 4. STREAMS
+  if (pathname.startsWith('/stream/tv/')) {
+    const id = pathname.replace('/stream/tv/', '').replace('.json', '');
     const streams = [];
 
-    // Streams para Eventos Esportivos
     if (id.startsWith('rde_ev_')) {
       const slug = id.replace('rde_ev_', '');
       try {
-        const resp = await axios.get(`${API_BASE}/eventos/${slug}`);
+        const resp = await axios.get(`${API_BASE}/eventos/${slug}`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         const ev = resp.data?.data?.[0] || resp.data?.data;
 
         if (ev && Array.isArray(ev.embeds)) {
@@ -214,10 +249,9 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Streams para Canais Agrupados (Ex: Apple TV 1, 2, 3...)
     if (id.startsWith('rde_grp_')) {
       try {
-        const resp = await axios.get(`${API_BASE}/channels`);
+        const resp = await axios.get(`${API_BASE}/channels`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         const grouped = processChannels(resp.data?.data || []);
         const target = grouped.find(g => g.id === id);
 

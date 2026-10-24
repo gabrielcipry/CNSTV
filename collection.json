@@ -1,0 +1,100 @@
+[
+  {
+    "id": "collection-reidosembeds-tv",
+    "title": "Canais & Esportes Ao Vivo",
+    "pinToTop": true,
+    "showAllTab": true,
+    "viewMode": "FOLLOW_LAYOUT",
+    "focusGlowEnabled": true,
+    "folders": [
+      {
+        "id": "folder-transmissoes-aovivo",
+        "title": "🔴 Ao Vivo Agora",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "focusGifUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "heroBackdropUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "backdropUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "catalogSources": [
+          {
+            "addonId": "community.nuvio.canaisreidos",
+            "addonName": "Canais & Esportes Ao Vivo",
+            "manifestUrl": "https://cnstv.vercel.app/manifest.json",
+            "catalogId": "rde_cat_aovivo",
+            "catalogName": "Transmissões Ao Vivo",
+            "type": "tv",
+            "showInHome": true
+          }
+        ]
+      },
+      {
+        "id": "folder-esportes-agenda",
+        "title": "⚽ Jogos & Eventos",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "focusGifUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "heroBackdropUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "backdropUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "catalogSources": [
+          {
+            "addonId": "community.nuvio.canaisreidos",
+            "addonName": "Canais & Esportes Ao Vivo",
+            "manifestUrl": "https://cnstv.vercel.app/manifest.json",
+            "catalogId": "rde_cat_esportes",
+            "catalogName": "Agenda Esportiva",
+            "type": "tv",
+            "showInHome": true
+          }
+        ]
+      },
+      {
+        "id": "folder-canais-abertos",
+        "title": "📺 Canais Abertos",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "focusGifUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "heroBackdropUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "backdropUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "catalogSources": [
+          {
+            "addonId": "community.nuvio.canaisreidos",
+            "addonName": "Canais & Esportes Ao Vivo",
+            "manifestUrl": "https://cnstv.vercel.app/manifest.json",
+            "catalogId": "rde_cat_canais_abertos",
+            "catalogName": "Canais Abertos",
+            "type": "tv",
+            "showInHome": true
+          }
+        ]
+      },
+      {
+        "id": "folder-todos-canais",
+        "title": "📺 Todos os Canais",
+        "tileShape": "LANDSCAPE",
+        "hideTitle": false,
+        "focusGifEnabled": false,
+        "coverImageUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "focusGifUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "heroBackdropUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "backdropUrl": "https://reidosembeds.lat/img/bg/bg-post-event.png",
+        "catalogSources": [
+          {
+            "addonId": "community.nuvio.canaisreidos",
+            "addonName": "Canais & Esportes Ao Vivo",
+            "manifestUrl": "https://cnstv.vercel.app/manifest.json",
+            "catalogId": "rde_cat_todos",
+            "catalogName": "Todos os Canais",
+            "type": "tv",
+            "showInHome": true
+          }
+        ]
+      }
+    ]
+  }
+]

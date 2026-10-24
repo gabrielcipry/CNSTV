@@ -1,9 +1,7 @@
 {
-  "version": 2,
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api/index.js"
-    }
-  ]
+  "name": "nuvio-canais-tv",
+  "version": "1.0.0",
+  "dependencies": {
+    "axios": "^1.7.0"
+  }
 }

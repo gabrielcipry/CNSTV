@@ -1,69 +1,50 @@
 {
-  "id": "community.nuvio.cnstv",
+  "id": "community.nuvio.canaisreidos",
   "version": "1.0.0",
-  "name": "CNS TV Ao Vivo",
-  "description": "Canais de TV ao vivo e eventos esportivos integrados em alta qualidade.",
+  "name": "Canais & Esportes Ao Vivo",
+  "description": "Canais e agenda esportiva Rei dos Embeds",
   "logo": "https://reidosembeds.lat/img/bg/bg-post-event.png",
-  "background": "https://reidosembeds.lat/img/bg/bg-post-event.png",
   "resources": [
-    "stream",
     "catalog",
-    "meta"
+    "meta",
+    "stream"
   ],
   "types": [
-    "tv",
-    "movie",
-    "series"
+    "tv"
   ],
   "idPrefixes": [
-    "tv",
-    "rde"
+    "rde_"
   ],
   "catalogs": [
     {
       "type": "tv",
-      "id": "tv_eventos",
-      "name": "Eventos Ao Vivo",
-      "posterShape": "square",
-      "extra": [
-        { "name": "search", "isRequired": false },
-        {
-          "name": "genre",
-          "isRequired": false,
-          "options": ["Todos", "Futebol", "Basquete", "Vôlei", "MMA", "Outros Esportes"]
-        },
-        { "name": "skip", "isRequired": false }
-      ]
+      "id": "rde_cat_todos",
+      "name": "Todos os Canais",
+      "posterShape": "landscape"
     },
     {
       "type": "tv",
-      "id": "tv_canais",
-      "name": "Canais de TV",
-      "posterShape": "square",
-      "extra": [
-        { "name": "search", "isRequired": false },
-        {
-          "name": "genre",
-          "isRequired": false,
-          "options": [
-            "Todos",
-            "Ao Vivo Agora",
-            "Canais Abertos",
-            "Globo",
-            "Notícias",
-            "Filmes",
-            "Séries",
-            "Variedades",
-            "Documentários",
-            "Infantil",
-            "Desenhos",
-            "Animes",
-            "24 Horas",
-            "Realitys"
-          ]
-        },
-        { "name": "skip", "isRequired": false }
-      ]
+      "id": "rde_cat_aovivo",
+      "name": "Ao Vivo Agora",
+      "posterShape": "landscape"
+    },
+    {
+      "type": "tv",
+      "id": "rde_cat_esportes",
+      "name": "Esportes e Eventos",
+      "posterShape": "landscape"
+    },
+    {
+      "type": "tv",
+      "id": "rde_cat_canais_abertos",
+      "name": "Canais Abertos",
+      "posterShape": "landscape"
+    },
+    {
+      "type": "tv",
+      "id": "rde_cat_globo",
+      "name": "Rede Globo",
+      "posterShape": "landscape"
     }
   ]
 }
